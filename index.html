@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Focus Timer</title>
+<title>get on the grind.</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -295,10 +295,10 @@ body {
     <div class="chart-box">
       <div class="chart-header">
         <div class="chart-title">Cumulative Minutes</div>
-        <div class="chart-sub">all scholars · all time</div>
+        <div class="chart-sub">all users · all time</div>
       </div>
       <div id="globalChartWrap">
-        <div class="chart-empty" id="globalChartEmpty">Chart builds as scholars log sessions...</div>
+        <div class="chart-empty" id="globalChartEmpty">Chart builds as users log sessions...</div>
         <canvas id="globalChart" height="120" style="display:none"></canvas>
       </div>
     </div>
@@ -320,8 +320,8 @@ function getSessions() { try { return JSON.parse(localStorage.getItem(SESSIONS_K
 function saveSessions(s) { localStorage.setItem(SESSIONS_KEY,JSON.stringify(s)); }
 
 // ── JSONBin config — fill these in ────────────────────────────────────────────
-const JSONBIN_BIN_ID  = 'YOUR_BIN_ID_HERE';
-const JSONBIN_API_KEY = 'YOUR_API_KEY_HERE';
+const JSONBIN_BIN_ID  = '69a76ae0d0ea881f40ebfd61';
+const JSONBIN_API_KEY = 'Y$2a$10$USN2XfHIYfcmLA6zG1RfZeqIEtz7dNxJMW29stolGHWBLwUqn0D22';
 const JSONBIN_URL     = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
 async function fetchGlobalData() {

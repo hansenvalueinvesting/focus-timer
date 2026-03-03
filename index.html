@@ -232,8 +232,7 @@ body {
   <!-- Custom button (shown when not running and picker closed) -->
   <button class="btn-custom-open" id="customOpenBtn" onclick="openPicker()">Custom Duration</button>
 
-  <!-- Running quote -->
-  <div class="running-quote" id="runningQuote" style="display:none"></div>
+
 
   <!-- Tabs -->
   <div class="tabs">
@@ -295,10 +294,10 @@ body {
     <div class="chart-box">
       <div class="chart-header">
         <div class="chart-title">Cumulative Minutes</div>
-        <div class="chart-sub">all scholars · all time</div>
+        <div class="chart-sub">all users · all time</div>
       </div>
       <div id="globalChartWrap">
-        <div class="chart-empty" id="globalChartEmpty">Chart builds as scholars log sessions...</div>
+        <div class="chart-empty" id="globalChartEmpty">Chart builds as users log sessions...</div>
         <canvas id="globalChart" height="120" style="display:none"></canvas>
       </div>
     </div>
@@ -323,7 +322,7 @@ function saveSessions(s) { localStorage.setItem(SESSIONS_KEY,JSON.stringify(s));
 // 1. Go to console.firebase.google.com → create project → Realtime Database
 // 2. Create database → start in TEST MODE (allows public read/write)
 // 3. Copy your database URL below (looks like https://YOUR-PROJECT.firebaseio.com)
-const FIREBASE_URL = 'https://focus-app-dd888-default-rtdb.firebaseio.com/';
+const FIREBASE_URL = 'https://YOUR-PROJECT-DEFAULT-RTDB.firebaseio.com';
 
 async function fetchGlobalData() {
   try {
@@ -369,13 +368,7 @@ function fmtTime(s) { return Math.floor(s/60)+':'+(s%60).toString().padStart(2,'
 function isToday(ts) { const d=new Date(ts),t=new Date(); return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear(); }
 function todayKey() { return new Date().toISOString().slice(0,10); }
 
-const QUOTES = [
-  'Concentrate all your thoughts upon the work at hand.',
-  'Deep work is the ability to focus without distraction.',
-  'One hour of concentrated effort equals three of distracted labor.',
-  'Silence is the sleep that nourishes wisdom.',
-  'Focus is not about saying yes — it\'s about saying no.',
-];
+
 
 function getStatus(pct) {
   if (pct<=0)   return {label:'',      color:'#94a3b8'};
@@ -430,8 +423,7 @@ function startTimer(mins) {
   document.getElementById('customOpenBtn').style.display = 'none';
   document.getElementById('pickerBox').style.display = 'none';
   document.getElementById('controls').style.visibility = 'visible';
-  document.getElementById('runningQuote').style.display = 'block';
-  document.getElementById('runningQuote').textContent = QUOTES[Math.floor(Date.now()/86400000)%QUOTES.length];
+
   document.getElementById('gaugeSub').textContent = 'remaining';
   document.getElementById('gaugeTime').style.color = '#fff';
 
@@ -499,7 +491,7 @@ function resetUI() {
   document.getElementById('controls').style.visibility = 'hidden';
   document.getElementById('quickCards').style.display = 'flex';
   document.getElementById('customOpenBtn').style.display = 'block';
-  document.getElementById('runningQuote').style.display = 'none';
+
   document.getElementById('pauseBtn').textContent = 'Pause';
 }
 

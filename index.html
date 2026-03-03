@@ -267,7 +267,7 @@ body {
 
     <div class="chart-box">
       <div class="chart-title">Last 14 Days</div>
-      <canvas id="personalChart" height="90"></canvas>
+      <div style="position:relative;height:90px"><canvas id="personalChart"></canvas></div>
     </div>
 
     <div class="section-label">Session History</div>
@@ -298,7 +298,7 @@ body {
       </div>
       <div id="globalChartWrap">
         <div class="chart-empty" id="globalChartEmpty">Chart builds as users log sessions...</div>
-        <canvas id="globalChart" height="120" style="display:none"></canvas>
+        <div id="globalChartCanvas" style="position:relative;height:120px;display:none"><canvas id="globalChart"></canvas></div>
       </div>
     </div>
 
@@ -628,7 +628,7 @@ async function renderGlobalStats() {
   if (sortedDays.length >= 1) {
     document.getElementById('globalChartEmpty').style.display = 'none';
     const gc = document.getElementById('globalChart');
-    gc.style.display = 'block';
+    document.getElementById('globalChartCanvas').style.display = 'block';
     let cum = 0;
     const labels=[], data=[], dailyData=[];
     sortedDays.forEach(k => {

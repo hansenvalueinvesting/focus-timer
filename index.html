@@ -173,14 +173,7 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
       <div class="stat-card"><div class="sc-icon">🎯</div><div class="sc-val" id="gc-sessions" style="color:#a78bfa">—</div><div class="sc-lbl">Sessions</div></div>
       <div class="stat-card"><div class="sc-icon">📊</div><div class="sc-val" id="gc-avg" style="color:#fb923c">—</div><div class="sc-lbl">Avg Session</div></div>
     </div>
-    <div class="chart-box">
-      <div class="chart-header">
-        <div class="chart-title">Cumulative Minutes</div>
-        <div class="chart-sub">all users · all time</div>
-      </div>
-      <div class="chart-empty" id="globalChartEmpty">Chart builds as users log sessions...</div>
-      <div id="globalChartCanvas" style="position:relative;height:120px;display:none"><canvas id="globalChart"></canvas></div>
-    </div>
+
     <div id="globalDayList"></div>
   </div>
 </div>
@@ -399,9 +392,7 @@ async function renderGlobalStats() {
   const data = await fetchGlobalData();
   const total = data.total || 0;
   const days  = data.days  || {};
-  const today = todayKey(), globalToday = days[today]||0;
-  const sortedDays = Object.keys(days).sort();
-  const maxD = sortedDays.length ? Math.max(...Object.values(days)) : 0;
+  const today = todayKey(), globalToday = days[today] || 0;
 
   globalSessionsCache = data.sessions || [];
 
@@ -410,23 +401,6 @@ async function renderGlobalStats() {
   document.getElementById('gc-sessions').textContent = globalSessionsCache.length || '—';
   const globalAvg = globalSessionsCache.length ? Math.round(globalSessionsCache.reduce((a,s)=>a+s.duration,0) / globalSessionsCache.length) : 0;
   document.getElementById('gc-avg').textContent = globalAvg ? fmtMins(globalAvg) : '—';
-
-  if (sortedDays.length >= 1) {
-    document.getElementById('globalChartEmpty').style.display='none';
-    document.getElementById('globalChartCanvas').style.display='block';
-    let cum=0; const labels=[],cdata=[];
-    sortedDays.forEach(k=>{cum+=days[k];labels.push(new Date(k).toLocaleDateString([],{month:'short',day:'numeric'}));cdata.push(cum);});
-    const ctx=document.getElementById('globalChart').getContext('2d');
-    if (globalChart) globalChart.destroy();
-    globalChart=new Chart(ctx,{
-      type:'line',
-      data:{labels,datasets:[{label:'cumulative',data:cdata,fill:true,tension:0.4,borderColor:'#4ade80',borderWidth:2,pointRadius:0,
-        backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,120);g.addColorStop(0,'rgba(74,222,128,0.25)');g.addColorStop(1,'rgba(74,222,128,0)');return g;}}]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(20,20,35,0.95)',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'rgba(255,255,255,0.5)',bodyColor:'#4ade80',callbacks:{label:ctx=>fmtMins(ctx.parsed.y)}}},
-        scales:{x:{grid:{display:false},ticks:{color:'rgba(255,255,255,0.25)',font:{size:9},maxTicksLimit:6},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.2)',font:{size:9},callback:v=>v>=60?Math.round(v/60)+'h':v},border:{display:false}}}}
-    });
-  }
 
   renderGlobalSessionList();
 }

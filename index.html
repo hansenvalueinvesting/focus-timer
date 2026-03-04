@@ -209,6 +209,7 @@ async function addGlobal(mins, completed) {
     data.days  = data.days || {};
     data.days[today] = (data.days[today]||0) + mins;
     data.sessions = data.sessions || [];
+    if (!Array.isArray(data.sessions)) data.sessions = Object.values(data.sessions);
     data.sessions.unshift({ duration: mins, timestamp: Date.now(), completed });
     await fetch(FIREBASE_URL + '/global.json', {
       method: 'PUT',
@@ -394,7 +395,10 @@ async function renderGlobalStats() {
   const days  = data.days  || {};
   const today = todayKey(), globalToday = days[today] || 0;
 
-  globalSessionsCache = data.sessions || [];
+  const rawSessions = data.sessions || [];
+  globalSessionsCache = Array.isArray(rawSessions)
+    ? rawSessions
+    : Object.values(rawSessions).sort((a,b) => b.timestamp - a.timestamp);
 
   document.getElementById('gc-total').textContent = fmtMins(total);
   document.getElementById('gc-today').textContent = fmtMins(globalToday);

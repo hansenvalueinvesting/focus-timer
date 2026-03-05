@@ -257,7 +257,7 @@ async function addGlobal(mins, completed) {
 
 function fmtMins(m) { if (!m) return '0m'; if (m<60) return m+'m'; const h=Math.floor(m/60),r=m%60; return r ? h+'h '+r+'m' : h+'h'; }
 function fmtTime(s) { return Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0'); }
-function isToday(ts) { const d=new Date(ts),t=new Date(); return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear(); }
+function isToday(ts) { return new Date(ts).toISOString().slice(0,10) === todayKey(); }
 function todayKey() { return new Date().toISOString().slice(0,10); }
 function getStatus(pct) {
   if (pct<=0)   return {label:'',          color:'#94a3b8'};
@@ -529,18 +529,17 @@ async function fetchLeaderboardData() {
 
 async function updateLeaderboard(mins) {
   const name = getLbName();
-  if (!name) return; // don't post anonymous entries with no name
-  const uid = getLbUid();
+  if (!name) return;
   const today = todayKey();
+  const nameKey = name.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,24);
   try {
-    // read just this user's entry
-    const r = await fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`);
+    const r = await fetch(`${FIREBASE_URL}/leaderboard/${today}/${nameKey}.json`);
     const existing = await r.json();
     const current = (existing && existing.mins) ? existing.mins : 0;
-    await fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`, {
+    await fetch(`${FIREBASE_URL}/leaderboard/${today}/${nameKey}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.slice(0,24), mins: current + mins, uid, ts: Date.now() })
+      body: JSON.stringify({ name, mins: current + mins, nameKey, ts: Date.now() })
     });
   } catch {}
 }
@@ -552,9 +551,9 @@ function startLbCountdown() {
   if (lbCountdownInterval) clearInterval(lbCountdownInterval);
   function update() {
     const now = new Date();
-    const midnight = new Date();
-    midnight.setHours(24, 0, 0, 0);
-    const diff = Math.max(0, Math.floor((midnight - now) / 1000));
+    const midnightUTC = new Date();
+    midnightUTC.setUTCHours(24, 0, 0, 0);
+    const diff = Math.max(0, Math.floor((midnightUTC - now) / 1000));
     const h = Math.floor(diff / 3600);
     const m = Math.floor((diff % 3600) / 60);
     const s = diff % 60;
@@ -575,7 +574,7 @@ async function renderLeaderboard() {
 
   // Set date label
   document.getElementById('lbDateLabel').textContent =
-    new Date().toLocaleDateString([], { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric', timeZone:'UTC' });
 
   // Pre-fill name input
   const nameInput = document.getElementById('lbNameInput');

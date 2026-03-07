@@ -320,6 +320,7 @@ function tick() {
   const pct=1-remaining/totalSecs;
   setProgress(pct); updateGaugeStatus(pct);
   document.getElementById('gaugeTime').textContent=fmtTime(remaining);
+  document.title = fmtTime(remaining) + ' — get on the grind.';
   const tm=sessions.filter(s=>isToday(s.timestamp)).reduce((a,s)=>a+s.duration,0);
   document.getElementById('stripToday').textContent=fmtMins(tm);
   if (remaining<=0) { clearInterval(interval); finishSession(Math.round(totalSecs/60),true); }
@@ -366,6 +367,7 @@ function resetUI() {
   document.getElementById('gaugeTime').style.color='rgba(255,255,255,0.25)';
   document.getElementById('gaugeSub').textContent='tap to start';
   document.getElementById('gaugeLabel').textContent='';
+  document.title = 'get on the grind.';
   setProgress(0); updateGaugeStatus(0);
   document.getElementById('controls').style.visibility='hidden';
   document.getElementById('quickCards').style.display='flex';

@@ -306,6 +306,7 @@ function startTimer(mins) {
   document.getElementById('controls').style.visibility='visible';
   document.getElementById('gaugeSub').textContent='remaining';
   document.getElementById('gaugeTime').style.color='#fff';
+  document.querySelector('.header h1').textContent='stay on the grind.';
   tick();
   interval=setInterval(tick,500);
   registerLive();
@@ -320,7 +321,7 @@ function tick() {
   const pct=1-remaining/totalSecs;
   setProgress(pct); updateGaugeStatus(pct);
   document.getElementById('gaugeTime').textContent=fmtTime(remaining);
-  document.title = fmtTime(remaining) + ' — get on the grind.';
+  document.title = fmtTime(remaining) + ' — stay on the grind.';
   const tm=sessions.filter(s=>isToday(s.timestamp)).reduce((a,s)=>a+s.duration,0);
   document.getElementById('stripToday').textContent=fmtMins(tm);
   if (remaining<=0) { clearInterval(interval); finishSession(Math.round(totalSecs/60),true); }
@@ -368,6 +369,7 @@ function resetUI() {
   document.getElementById('gaugeSub').textContent='tap to start';
   document.getElementById('gaugeLabel').textContent='';
   document.title = 'get on the grind.';
+  document.querySelector('.header h1').textContent='get on the grind.';
   setProgress(0); updateGaugeStatus(0);
   document.getElementById('controls').style.visibility='hidden';
   document.getElementById('quickCards').style.display='flex';

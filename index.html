@@ -332,6 +332,7 @@ function tick() {
   document.title = fmtTime(remaining) + ' — stay on the grind.';
   const tm=sessions.filter(s=>isToday(s.timestamp)).reduce((a,s)=>a+s.duration,0);
   document.getElementById('stripToday').textContent=fmtMins(tm);
+  if (++tickCount % 20 === 0) saveTimerState();
   if (remaining<=0) { clearInterval(interval); finishSession(Math.round(totalSecs/60),true); }
 }
 
@@ -686,53 +687,55 @@ setInterval(refreshLiveCount, 20000);
 refreshLiveCount();
 
 async function restoreTimerState() {
-  const state = getTimerState();
-  if (!state || !state.isRunning) return;
-  const { totalSecs: ts, startTimestamp: st, isPaused: ip, pausedAt: pa } = state;
+  try {
+    const state = getTimerState();
+    if (!state || !state.isRunning) return;
+    const { totalSecs: ts, startTimestamp: st, isPaused: ip, pausedAt: pa } = state;
 
-  if (!ip) {
-    const elapsed = Math.floor((Date.now() - st) / 1000);
-    if (elapsed >= ts) {
-      // Session finished while tab was closed — auto-log it
-      clearTimerState();
-      const mins = Math.round(ts / 60);
-      await finishSession(mins, true);
-      showToast('⏰ Session auto-completed while you were away! +' + mins + 'm logged');
-      return;
+    if (!ip) {
+      const elapsed = Math.floor((Date.now() - st) / 1000);
+      if (elapsed >= ts) {
+        // Session finished while tab was closed — auto-log it
+        clearTimerState();
+        const mins = Math.round(ts / 60);
+        await finishSession(mins, true);
+        showToast('⏰ Session auto-completed while you were away! +' + mins + 'm logged');
+        return;
+      }
     }
-  }
 
-  // Restore the in-progress session
-  totalSecs = ts;
-  startTimestamp = st;
-  isRunning = true;
-  isPaused = ip;
-  pausedAt = pa;
+    // Restore the in-progress session
+    totalSecs = ts;
+    startTimestamp = st;
+    isRunning = true;
+    isPaused = ip;
+    pausedAt = pa || 0;
 
-  document.getElementById('gaugeWrap').style.cursor = 'default';
-  document.getElementById('quickCards').style.display = 'none';
-  document.getElementById('customOpenBtn').style.display = 'none';
-  document.getElementById('pickerBox').style.display = 'none';
-  document.getElementById('controls').style.visibility = 'visible';
-  document.getElementById('gaugeTime').style.color = '#fff';
-  document.querySelector('.header h1').textContent = 'stay on the grind.';
+    document.getElementById('gaugeWrap').style.cursor = 'default';
+    document.getElementById('quickCards').style.display = 'none';
+    document.getElementById('customOpenBtn').style.display = 'none';
+    document.getElementById('pickerBox').style.display = 'none';
+    document.getElementById('controls').style.visibility = 'visible';
+    document.getElementById('gaugeTime').style.color = '#fff';
+    document.querySelector('.header h1').textContent = 'stay on the grind.';
 
-  if (isPaused) {
-    const elapsedAtPause = Math.floor((pausedAt - startTimestamp) / 1000);
-    const rem = Math.max(totalSecs - elapsedAtPause, 0);
-    const pct = 1 - rem / totalSecs;
-    setProgress(pct); updateGaugeStatus(pct);
-    document.getElementById('gaugeTime').textContent = fmtTime(rem);
-    document.getElementById('gaugeSub').textContent = 'paused';
-    document.getElementById('gaugeLabel').textContent = 'Paused';
-    document.getElementById('pauseBtn').textContent = 'Resume';
-  } else {
-    document.getElementById('gaugeSub').textContent = 'remaining';
-    tick();
-    interval = setInterval(tick, 500);
-    registerLive();
-    liveHeartbeat = setInterval(registerLive, 30000);
-  }
+    if (isPaused) {
+      const elapsedAtPause = Math.floor((pausedAt - startTimestamp) / 1000);
+      const rem = Math.max(totalSecs - elapsedAtPause, 0);
+      const pct = 1 - rem / totalSecs;
+      setProgress(pct); updateGaugeStatus(pct);
+      document.getElementById('gaugeTime').textContent = fmtTime(rem);
+      document.getElementById('gaugeSub').textContent = 'paused';
+      document.getElementById('gaugeLabel').textContent = 'Paused';
+      document.getElementById('pauseBtn').textContent = 'Resume';
+    } else {
+      document.getElementById('gaugeSub').textContent = 'remaining';
+      tick();
+      interval = setInterval(tick, 500);
+      registerLive();
+      liveHeartbeat = setInterval(registerLive, 30000);
+    }
+  } catch(e) { console.error('restoreTimerState failed:', e); }
 }
 
 window.addEventListener('beforeunload', () => {
@@ -742,12 +745,30 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isRunning&&!isPaused)tick();});
+let tickCount = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (isRunning) saveTimerState();
+  } else {
+    if (isRunning && !isPaused) tick();
+  }
+});
+
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    // Restored from bfcache — intervals were paused, restart them
+    if (isRunning && !isPaused) {
+      clearInterval(interval);
+      tick();
+      interval = setInterval(tick, 500);
+    }
+  }
+});
 
 setProgress(0); updateGaugeStatus(0);
-renderMyStats();
-renderGlobalStats();
 restoreTimerState();
+try { renderMyStats(); } catch(e) {}
+try { renderGlobalStats(); } catch(e) {}
 </script>
 </body>
 </html>

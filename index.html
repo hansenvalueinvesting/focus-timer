@@ -276,6 +276,7 @@ let isRunning=false, isPaused=false;
 let totalSecs=0, remaining=0;
 let startTimestamp=0, pausedAt=0;
 let interval=null;
+const _timerWorker=(()=>{const blob=new Blob([`let t;self.onmessage=e=>{if(e.data==='start'){t=setInterval(()=>self.postMessage(1),500);}else{clearInterval(t);}};`],{type:'application/javascript'});const w=new Worker(URL.createObjectURL(blob));w.onmessage=()=>tick();return w;})();
 let sessions=getSessions(), lifetime=getLifetime(), sessionShowAll=false;
 
 const CIRC=2*Math.PI*88, ARC=CIRC*0.82;
@@ -308,7 +309,7 @@ function startTimer(mins) {
   document.getElementById('gaugeTime').style.color='#fff';
   document.querySelector('.header h1').textContent='stay on the grind.';
   tick();
-  interval=setInterval(tick,500);
+  _timerWorker.postMessage('start');
   registerLive();
   liveHeartbeat = setInterval(registerLive, 30000);
 }
@@ -324,7 +325,7 @@ function tick() {
   document.title = fmtTime(remaining) + ' — stay on the grind.';
   const tm=sessions.filter(s=>isToday(s.timestamp)).reduce((a,s)=>a+s.duration,0);
   document.getElementById('stripToday').textContent=fmtMins(tm);
-  if (remaining<=0) { clearInterval(interval); finishSession(Math.round(totalSecs/60),true); }
+  if (remaining<=0) { _timerWorker.postMessage('stop'); finishSession(Math.round(totalSecs/60),true); }
 }
 
 function togglePause() {
@@ -342,7 +343,7 @@ function togglePause() {
 }
 
 function endEarly() {
-  clearInterval(interval);
+  _timerWorker.postMessage('stop');
   const elapsed=Math.floor((totalSecs-remaining)/60);
   if (elapsed>0) finishSession(elapsed,false); else resetUI();
 }
@@ -360,7 +361,7 @@ async function finishSession(mins,completed) {
 
 function resetUI() {
   isRunning=false; isPaused=false; totalSecs=0; remaining=0;
-  clearInterval(interval);
+  _timerWorker.postMessage('stop');
   clearInterval(liveHeartbeat);
   unregisterLive();
   document.getElementById('gaugeWrap').style.cursor='pointer';

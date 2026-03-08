@@ -235,7 +235,9 @@ function getSessions() { try { return JSON.parse(localStorage.getItem(SESSIONS_K
 function saveSessions(s) { localStorage.setItem(SESSIONS_KEY,JSON.stringify(s)); }
 function saveTimerState() {
   if (!isRunning) { localStorage.removeItem(TIMER_STATE_KEY); return; }
-  localStorage.setItem(TIMER_STATE_KEY, JSON.stringify({ isRunning, isPaused, totalSecs, startTimestamp, pausedAt }));
+  const data = { isRunning, isPaused, totalSecs, startTimestamp, pausedAt };
+  console.log('[timer] saving state:', JSON.stringify(data));
+  localStorage.setItem(TIMER_STATE_KEY, JSON.stringify(data));
 }
 function clearTimerState() { localStorage.removeItem(TIMER_STATE_KEY); }
 function getTimerState() { try { return JSON.parse(localStorage.getItem(TIMER_STATE_KEY)||'null'); } catch { return null; } }
@@ -688,8 +690,11 @@ refreshLiveCount();
 
 async function restoreTimerState() {
   try {
+    const raw = localStorage.getItem(TIMER_STATE_KEY);
+    console.log('[timer] raw stored state:', raw);
     const state = getTimerState();
-    if (!state || !state.isRunning) return;
+    console.log('[timer] parsed state:', state);
+    if (!state || !state.isRunning) { console.log('[timer] no running state to restore'); return; }
     const { totalSecs: ts, startTimestamp: st, isPaused: ip, pausedAt: pa } = state;
 
     if (!ip) {
@@ -705,6 +710,7 @@ async function restoreTimerState() {
     }
 
     // Restore the in-progress session
+    console.log('[timer] restoring session, elapsed:', Math.floor((Date.now()-st)/1000), 'of', ts, 'secs');
     totalSecs = ts;
     startTimestamp = st;
     isRunning = true;

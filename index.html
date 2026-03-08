@@ -177,6 +177,9 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
 
   <button class="btn-custom-open" id="customOpenBtn" onclick="openPicker()">Custom Duration</button>
 
+  <div id="debugPanel" style="margin:12px auto;max-width:480px;background:#1e1e2e;border:1px solid #444;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;color:#cdd6f4;white-space:pre-wrap;word-break:break-all;display:none"></div>
+  <button onclick="document.getElementById('debugPanel').style.display='block';document.getElementById('debugPanel').textContent='localStorage key: '+localStorage.getItem('focus_timer_state')" style="display:block;margin:4px auto;font-size:11px;background:#313244;color:#cdd6f4;border:1px solid #444;border-radius:6px;padding:4px 10px;cursor:pointer">Check saved state</button>
+
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('stats',this)">My Stats</button>
     <button class="tab-btn" onclick="switchTab('leaderboard',this)">Leaderboard</button>

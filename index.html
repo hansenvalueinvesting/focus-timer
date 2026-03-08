@@ -228,10 +228,17 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
 <script>
 const LIFETIME_KEY = 'focus_lifetime_minutes';
 const SESSIONS_KEY = 'focus_sessions';
+const TIMER_STATE_KEY = 'focus_timer_state';
 function getLifetime() { return parseInt(localStorage.getItem(LIFETIME_KEY)||'0',10); }
 function saveLifetime(m) { localStorage.setItem(LIFETIME_KEY,String(m)); }
 function getSessions() { try { return JSON.parse(localStorage.getItem(SESSIONS_KEY)||'[]'); } catch { return []; } }
 function saveSessions(s) { localStorage.setItem(SESSIONS_KEY,JSON.stringify(s)); }
+function saveTimerState() {
+  if (!isRunning) { localStorage.removeItem(TIMER_STATE_KEY); return; }
+  localStorage.setItem(TIMER_STATE_KEY, JSON.stringify({ isRunning, isPaused, totalSecs, startTimestamp, pausedAt }));
+}
+function clearTimerState() { localStorage.removeItem(TIMER_STATE_KEY); }
+function getTimerState() { try { return JSON.parse(localStorage.getItem(TIMER_STATE_KEY)||'null'); } catch { return null; } }
 
 const FIREBASE_URL = 'https://focus-app-dd888-default-rtdb.firebaseio.com';
 
@@ -299,6 +306,7 @@ function startTimer(mins) {
   totalSecs=mins*60; remaining=totalSecs;
   isRunning=true; isPaused=false;
   startTimestamp=Date.now();
+  saveTimerState();
   document.getElementById('gaugeWrap').style.cursor='default';
   document.getElementById('quickCards').style.display='none';
   document.getElementById('customOpenBtn').style.display='none';
@@ -333,10 +341,12 @@ function togglePause() {
     document.getElementById('pauseBtn').textContent='Resume';
     document.getElementById('gaugeSub').textContent='paused';
     document.getElementById('gaugeLabel').textContent='Paused';
+    saveTimerState();
   } else {
     isPaused=false; startTimestamp+=(Date.now()-pausedAt);
     document.getElementById('pauseBtn').textContent='Pause';
     document.getElementById('gaugeSub').textContent='remaining';
+    saveTimerState();
     tick();
   }
 }
@@ -360,6 +370,7 @@ async function finishSession(mins,completed) {
 
 function resetUI() {
   isRunning=false; isPaused=false; totalSecs=0; remaining=0;
+  clearTimerState();
   clearInterval(interval);
   clearInterval(liveHeartbeat);
   unregisterLive();
@@ -674,8 +685,61 @@ async function refreshLiveCount() {
 setInterval(refreshLiveCount, 20000);
 refreshLiveCount();
 
+async function restoreTimerState() {
+  const state = getTimerState();
+  if (!state || !state.isRunning) return;
+  const { totalSecs: ts, startTimestamp: st, isPaused: ip, pausedAt: pa } = state;
+
+  if (!ip) {
+    const elapsed = Math.floor((Date.now() - st) / 1000);
+    if (elapsed >= ts) {
+      // Session finished while tab was closed — auto-log it
+      clearTimerState();
+      const mins = Math.round(ts / 60);
+      await finishSession(mins, true);
+      showToast('⏰ Session auto-completed while you were away! +' + mins + 'm logged');
+      return;
+    }
+  }
+
+  // Restore the in-progress session
+  totalSecs = ts;
+  startTimestamp = st;
+  isRunning = true;
+  isPaused = ip;
+  pausedAt = pa;
+
+  document.getElementById('gaugeWrap').style.cursor = 'default';
+  document.getElementById('quickCards').style.display = 'none';
+  document.getElementById('customOpenBtn').style.display = 'none';
+  document.getElementById('pickerBox').style.display = 'none';
+  document.getElementById('controls').style.visibility = 'visible';
+  document.getElementById('gaugeTime').style.color = '#fff';
+  document.querySelector('.header h1').textContent = 'stay on the grind.';
+
+  if (isPaused) {
+    const elapsedAtPause = Math.floor((pausedAt - startTimestamp) / 1000);
+    const rem = Math.max(totalSecs - elapsedAtPause, 0);
+    const pct = 1 - rem / totalSecs;
+    setProgress(pct); updateGaugeStatus(pct);
+    document.getElementById('gaugeTime').textContent = fmtTime(rem);
+    document.getElementById('gaugeSub').textContent = 'paused';
+    document.getElementById('gaugeLabel').textContent = 'Paused';
+    document.getElementById('pauseBtn').textContent = 'Resume';
+  } else {
+    document.getElementById('gaugeSub').textContent = 'remaining';
+    tick();
+    interval = setInterval(tick, 500);
+    registerLive();
+    liveHeartbeat = setInterval(registerLive, 30000);
+  }
+}
+
 window.addEventListener('beforeunload', () => {
-  if (isRunning) navigator.sendBeacon(`${FIREBASE_URL}/live/${LIVE_UID}.json`, JSON.stringify(null));
+  if (isRunning) {
+    saveTimerState();
+    navigator.sendBeacon(`${FIREBASE_URL}/live/${LIVE_UID}.json`, JSON.stringify(null));
+  }
 });
 
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isRunning&&!isPaused)tick();});
@@ -683,6 +747,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isRunning
 setProgress(0); updateGaugeStatus(0);
 renderMyStats();
 renderGlobalStats();
+restoreTimerState();
 </script>
 </body>
 </html>

@@ -524,7 +524,8 @@ function buildChartConfig(labels, focusData, distractData, focusColor, rawDistra
           backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,90);g.addColorStop(0,focusColor+'40');g.addColorStop(1,focusColor+'00');return g;}
         },
         {
-          label:'Avg Distracts/hr',
+          label: distractLabel,
+          data: distractData,
           fill:false,
           tension:0.4,
           borderColor:'rgba(251,146,60,0.7)',

@@ -229,7 +229,7 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
       <div class="stat-card"><div class="sc-icon">🌍</div><div class="sc-val" id="gc-total" style="color:#4ade80">—</div><div class="sc-lbl">All Time Focus</div></div>
       <div class="stat-card"><div class="sc-icon">⚡</div><div class="sc-val" id="gc-today" style="color:#facc15">—</div><div class="sc-lbl">Today (Global)</div></div>
       <div class="stat-card"><div class="sc-icon">🎯</div><div class="sc-val" id="gc-sessions" style="color:#a78bfa">—</div><div class="sc-lbl">Sessions</div></div>
-      <div class="stat-card"><div class="sc-icon">🫠</div><div class="sc-val" id="gc-distractions" style="color:#fb923c">—</div><div class="sc-lbl">Avg Distracts/hr</div></div>
+      <div class="stat-card"><div class="sc-icon">🫠</div><div class="sc-val" id="gc-distractions" style="color:#fb923c">—</div><div class="sc-lbl">Total Distractions</div></div>
     </div>
     <div class="chart-box">
       <div class="chart-header">
@@ -242,6 +242,7 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
       <div style="position:relative;height:90px"><canvas id="globalChart"></canvas></div>
     </div>
     <div id="globalDayList"></div>
+    <!-- global chart uses total distractions, not per-hr -->
   </div>
 </div>
 
@@ -454,7 +455,8 @@ function getAllDaysSorted(dailyMap) {
 }
 
 // Build chart datasets for all-time view (all days with data)
-function buildAllTimeChartData(dailyFocus, dailyDistract) {
+// rawDistracts=true: use raw daily totals; false (default): use avg/hr
+function buildAllTimeChartData(dailyFocus, dailyDistract, rawDistracts) {
   const allDays = [...new Set([...Object.keys(dailyFocus), ...Object.keys(dailyDistract)])].sort();
   const labels = allDays.map(k => {
     const [y, m, d] = k.split('-');
@@ -462,11 +464,10 @@ function buildAllTimeChartData(dailyFocus, dailyDistract) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   });
   const focusData = allDays.map(k => dailyFocus[k] || 0);
-  // avg distracts/hr per day
   const distractData = allDays.map(k => {
     const mins = dailyFocus[k] || 0;
     const distracts = dailyDistract[k] || 0;
-    return avgDistractsPerHr(distracts, mins);
+    return rawDistracts ? distracts : avgDistractsPerHr(distracts, mins);
   });
   return { labels, focusData, distractData };
 }
@@ -504,7 +505,8 @@ function renderMyStats() {
   renderSessionList();
 }
 
-function buildChartConfig(labels, focusData, distractData, focusColor) {
+function buildChartConfig(labels, focusData, distractData, focusColor, rawDistracts) {
+  const distractLabel = rawDistracts ? 'distractions' : 'distracts/hr';
   return {
     type:'line',
     data:{
@@ -523,7 +525,6 @@ function buildChartConfig(labels, focusData, distractData, focusColor) {
         },
         {
           label:'Avg Distracts/hr',
-          data:distractData,
           fill:false,
           tension:0.4,
           borderColor:'rgba(251,146,60,0.7)',
@@ -547,7 +548,7 @@ function buildChartConfig(labels, focusData, distractData, focusColor) {
           borderWidth:1,
           titleColor:'rgba(255,255,255,0.5)',
           callbacks:{
-            label:ctx=>ctx.datasetIndex===0 ? ctx.parsed.y+'m focused' : ctx.parsed.y+'/hr distractions'
+            label:ctx=>ctx.datasetIndex===0 ? ctx.parsed.y+'m focused' : ctx.parsed.y+' '+distractLabel
           }
         }
       },
@@ -594,19 +595,17 @@ async function renderGlobalStats() {
     ? rawSessions
     : Object.values(rawSessions).sort((a,b) => b.timestamp - a.timestamp);
 
-  const globalAvgPerHr = avgDistractsPerHr(totalDistractions, total);
-
   document.getElementById('gc-total').textContent = fmtMins(total);
   document.getElementById('gc-today').textContent = fmtMins(globalToday);
   document.getElementById('gc-sessions').textContent = globalSessionsCache.length || '—';
-  document.getElementById('gc-distractions').textContent = total > 0 ? globalAvgPerHr : '—';
+  document.getElementById('gc-distractions').textContent = totalDistractions || '0';
 
-  // Build all-time chart for global
-  const { labels, focusData, distractData } = buildAllTimeChartData(days, dayDistractions);
+  // Build all-time chart for global using raw daily distraction totals
+  const { labels, focusData, distractData } = buildAllTimeChartData(days, dayDistractions, true);
 
   const ctx = document.getElementById('globalChart').getContext('2d');
   if (globalChart) globalChart.destroy();
-  globalChart = new Chart(ctx, buildChartConfig(labels, focusData, distractData, '#4ade80'));
+  globalChart = new Chart(ctx, buildChartConfig(labels, focusData, distractData, '#4ade80', true));
 
   renderGlobalSessionList();
 }

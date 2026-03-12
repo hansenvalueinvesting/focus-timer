@@ -31,12 +31,20 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
 .gauge-time { font-family: 'DM Mono', monospace; font-size: 34px; font-weight: 700; color: #fff; line-height: 1; letter-spacing: -1px; }
 .gauge-sub { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
 .gauge-label { font-size: 12px; font-weight: 600; margin-top: 4px; }
-.controls { display: flex; gap: 10px; justify-content: center; margin-top: 14px; min-height: 44px; align-items: center; }
-.btn { border-radius: 12px; padding: 10px 24px; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; border: 1px solid; transition: background 0.15s; }
+.controls { display: flex; gap: 10px; justify-content: center; margin-top: 14px; min-height: 44px; align-items: center; flex-wrap: wrap; }
+.btn { border-radius: 12px; padding: 10px 24px; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; border: 1px solid; transition: all 0.15s; }
 .btn-pause { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: #fff; }
 .btn-pause:hover { background: rgba(255,255,255,0.12); }
 .btn-end { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.25); color: #fca5a5; }
 .btn-end:hover { background: rgba(248,113,113,0.18); }
+
+/* Distraction button */
+.btn-distract { background: rgba(251,146,60,0.08); border-color: rgba(251,146,60,0.2); color: rgba(251,146,60,0.7); position: relative; transition: all 0.2s; }
+.btn-distract:hover { background: rgba(251,146,60,0.15); border-color: rgba(251,146,60,0.35); color: #fb923c; }
+.btn-distract.bump { animation: bump 0.3s ease; }
+@keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.08)} 100%{transform:scale(1)} }
+.distract-badge { display: inline-block; background: rgba(251,146,60,0.25); border-radius: 20px; font-size: 11px; font-family: 'DM Mono', monospace; padding: 1px 7px; margin-left: 6px; color: #fb923c; font-weight: 500; min-width: 22px; text-align: center; }
+
 .quick-cards { display: flex; gap: 10px; margin: 18px 0 0; }
 .quick-card { flex: 1; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 14px 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: background 0.15s; text-align: center; }
 .quick-card:hover { background: rgba(255,255,255,0.1); }
@@ -68,37 +76,36 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
 .sc-val { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1; }
 .sc-lbl { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
 .chart-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 16px 12px 10px; margin-bottom: 16px; }
-.chart-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.chart-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
 .chart-title { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); font-family: 'DM Mono', monospace; }
+.chart-legend { display: flex; gap: 12px; }
+.chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 9px; color: rgba(255,255,255,0.3); font-family: 'DM Mono', monospace; letter-spacing: 1px; }
+.chart-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .chart-sub { font-size: 10px; color: rgba(255,255,255,0.18); font-family: 'DM Mono', monospace; }
-.chart-empty { height: 100px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.15); font-size: 12px; font-family: 'DM Mono', monospace; text-align: center; }
 .section-label { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 8px; font-family: 'DM Mono', monospace; }
 .session-entry { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .se-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
 .se-icon.complete { background: rgba(250,204,21,0.1); border: 1px solid rgba(250,204,21,0.25); }
 .se-icon.partial { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
 .se-body { flex: 1; min-width: 0; }
-.se-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.se-top { display: flex; justify-content: space-between; margin-bottom: 4px; align-items: center; }
 .se-name { font-size: 13px; font-weight: 600; color: #fff; }
 .se-time { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.35); white-space: nowrap; margin-left: 8px; }
+.se-distract-tag { font-family: 'DM Mono', monospace; font-size: 10px; color: #fb923c; background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.2); border-radius: 4px; padding: 1px 6px; margin-left: 6px; white-space: nowrap; flex-shrink: 0; }
 .se-bar-track { height: 3px; background: rgba(255,255,255,0.07); border-radius: 2px; }
 .se-bar-fill { height: 100%; border-radius: 2px; }
 .se-bar-fill.complete { background: linear-gradient(90deg,#facc15,#f59e0b); }
 .se-bar-fill.partial { background: linear-gradient(90deg,#94a3b8,#64748b); }
 .btn-load-more { margin-top: 12px; width: 100%; padding: 9px 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: rgba(255,255,255,0.45); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; }
 .empty-msg { text-align: center; color: rgba(255,255,255,0.2); padding: 32px 0; font-size: 13px; }
-.day-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.day-date { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.3); width: 60px; flex-shrink: 0; }
-.day-track { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; }
-.day-fill { height: 100%; background: linear-gradient(90deg,#4ade80,#22c55e); border-radius: 2px; transition: width 0.6s; }
-.day-val { font-family: 'DM Mono', monospace; font-size: 11px; color: #4ade80; width: 44px; text-align: right; flex-shrink: 0; }
 .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(10px); background: rgba(30,30,50,0.95); border: 1px solid rgba(255,255,255,0.12); border-radius: 40px; padding: 10px 22px; font-size: 13px; font-weight: 600; color: #fff; backdrop-filter: blur(12px); white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 100; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .lb-name-row { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
 .lb-name-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.3); font-family: 'DM Mono', monospace; white-space: nowrap; }
 .lb-name-input { flex: 1; background: none; border: none; outline: none; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; }
 .lb-name-input::placeholder { color: rgba(255,255,255,0.2); }
-.lb-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.lb-row { position: relative; padding: 9px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); border-radius: 6px; overflow: hidden; }
+.lb-row.you-row { background: rgba(167,139,250,0.05); border-color: rgba(167,139,250,0.15); }
 .lb-rank { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.25); width: 22px; flex-shrink: 0; text-align: right; }
 .lb-rank.gold   { color: #facc15; font-weight: 700; }
 .lb-rank.silver { color: #94a3b8; font-weight: 700; }
@@ -108,11 +115,10 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
 .lb-name.you { color: #a78bfa; }
 .lb-you-tag { font-size: 9px; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); color: #a78bfa; border-radius: 4px; padding: 1px 5px; margin-left: 6px; font-family: 'DM Mono', monospace; letter-spacing: 1px; vertical-align: middle; }
 .lb-mins { font-family: 'DM Mono', monospace; font-size: 12px; color: #4ade80; font-weight: 600; flex-shrink: 0; }
+.lb-distracts { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(251,146,60,0.6); flex-shrink: 0; margin-left: 8px; }
 .lb-bar-track { position: absolute; left: 0; top: 0; height: 100%; background: rgba(255,255,255,0.03); border-radius: 6px; width: 100%; z-index: 0; }
 .lb-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: rgba(74,222,128,0.06); border-radius: 6px; transition: width 0.6s; z-index: 0; }
 .lb-row-inner { display: flex; align-items: center; gap: 10px; width: 100%; position: relative; z-index: 1; }
-.lb-row { position: relative; padding: 9px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); border-radius: 6px; overflow: hidden; }
-.lb-row.you-row { background: rgba(167,139,250,0.05); border-color: rgba(167,139,250,0.15); }
 .lb-divider { text-align: center; color: rgba(255,255,255,0.15); font-size: 11px; padding: 6px 0; font-family: 'DM Mono', monospace; letter-spacing: 2px; }
 </style>
 </head>
@@ -149,6 +155,7 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
 
   <div class="controls" id="controls" style="visibility:hidden">
     <button class="btn btn-pause" id="pauseBtn" onclick="togglePause()">Pause</button>
+    <button class="btn btn-distract" id="distractBtn" onclick="logDistraction()">Log Distraction <span class="distract-badge" id="distractCount">0</span></button>
     <button class="btn btn-end" onclick="endEarly()">End Session</button>
   </div>
 
@@ -188,10 +195,16 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
       <div class="stat-card"><div class="sc-icon">🏆</div><div class="sc-val" id="sc-lifetime" style="color:#facc15">0m</div><div class="sc-lbl">Lifetime Focus</div></div>
       <div class="stat-card"><div class="sc-icon">📅</div><div class="sc-val" id="sc-today" style="color:#4ade80">0m</div><div class="sc-lbl">Today</div></div>
       <div class="stat-card"><div class="sc-icon">🎯</div><div class="sc-val" id="sc-sessions" style="color:#a78bfa">—</div><div class="sc-lbl">Sessions</div></div>
-      <div class="stat-card"><div class="sc-icon">📊</div><div class="sc-val" id="sc-avg" style="color:#fb923c">—</div><div class="sc-lbl">Avg Session</div></div>
+      <div class="stat-card"><div class="sc-icon">🫠</div><div class="sc-val" id="sc-distractions" style="color:#fb923c">0</div><div class="sc-lbl">Distractions</div></div>
     </div>
     <div class="chart-box">
-      <div class="chart-title">Last 14 Days</div>
+      <div class="chart-header">
+        <div class="chart-title">Last 14 Days</div>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#facc15"></div>focus</div>
+          <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#fb923c"></div>distractions</div>
+        </div>
+      </div>
       <div style="position:relative;height:90px"><canvas id="personalChart"></canvas></div>
     </div>
     <div class="section-label">Session History</div>
@@ -217,7 +230,7 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
       <div class="stat-card"><div class="sc-icon">🌍</div><div class="sc-val" id="gc-total" style="color:#4ade80">—</div><div class="sc-lbl">All Time Focus</div></div>
       <div class="stat-card"><div class="sc-icon">⚡</div><div class="sc-val" id="gc-today" style="color:#facc15">—</div><div class="sc-lbl">Today (Global)</div></div>
       <div class="stat-card"><div class="sc-icon">🎯</div><div class="sc-val" id="gc-sessions" style="color:#a78bfa">—</div><div class="sc-lbl">Sessions</div></div>
-      <div class="stat-card"><div class="sc-icon">📊</div><div class="sc-val" id="gc-avg" style="color:#fb923c">—</div><div class="sc-lbl">Avg Session</div></div>
+      <div class="stat-card"><div class="sc-icon">🫠</div><div class="sc-val" id="gc-distractions" style="color:#fb923c">—</div><div class="sc-lbl">Total Distractions</div></div>
     </div>
     <div id="globalDayList"></div>
   </div>
@@ -239,19 +252,21 @@ async function fetchGlobalData() {
   try {
     const r = await fetch(FIREBASE_URL + '/global.json');
     const data = await r.json();
-    return data || { total: 0, days: {}, sessions: [] };
-  } catch { return { total: 0, days: {}, sessions: [] }; }
+    return data || { total: 0, days: {}, sessions: [], totalDistractions: 0 };
+  } catch { return { total: 0, days: {}, sessions: [], totalDistractions: 0 }; }
 }
-async function addGlobal(mins, completed) {
+
+async function addGlobal(mins, completed, distractions) {
   try {
     const data = await fetchGlobalData();
     const today = nyDateKey();
     data.total = (data.total||0) + mins;
+    data.totalDistractions = (data.totalDistractions||0) + (distractions||0);
     data.days  = data.days || {};
     data.days[today] = (data.days[today]||0) + mins;
     data.sessions = data.sessions || [];
     if (!Array.isArray(data.sessions)) data.sessions = Object.values(data.sessions);
-    data.sessions.unshift({ duration: mins, timestamp: Date.now(), completed });
+    data.sessions.unshift({ duration: mins, timestamp: Date.now(), completed, distractions: distractions||0 });
     await fetch(FIREBASE_URL + '/global.json', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -276,6 +291,7 @@ let isRunning=false, isPaused=false;
 let totalSecs=0, remaining=0;
 let startTimestamp=0, pausedAt=0;
 let interval=null;
+let sessionDistractions = 0; // current session distraction count
 const _timerWorker=(()=>{const blob=new Blob([`let t;self.onmessage=e=>{if(e.data==='start'){t=setInterval(()=>self.postMessage(1),500);}else{clearInterval(t);}};`],{type:'application/javascript'});const w=new Worker(URL.createObjectURL(blob));w.onmessage=()=>tick();return w;})();
 let sessions=getSessions(), lifetime=getLifetime(), sessionShowAll=false;
 
@@ -295,10 +311,22 @@ function updateGaugeStatus(pct) {
     : 'radial-gradient(circle,rgba(99,102,241,0.06) 0%,transparent 70%)';
 }
 
+function logDistraction() {
+  sessionDistractions++;
+  document.getElementById('distractCount').textContent = sessionDistractions;
+  const btn = document.getElementById('distractBtn');
+  btn.classList.remove('bump');
+  void btn.offsetWidth; // reflow to restart animation
+  btn.classList.add('bump');
+  showToast('🫠 distraction logged — get back to it');
+}
+
 function startTimer(mins) {
   closePicker();
   totalSecs=mins*60; remaining=totalSecs;
   isRunning=true; isPaused=false;
+  sessionDistractions = 0;
+  document.getElementById('distractCount').textContent = '0';
   startTimestamp=Date.now();
   document.getElementById('gaugeWrap').style.cursor='default';
   document.getElementById('quickCards').style.display='none';
@@ -350,17 +378,19 @@ function endEarly() {
 
 async function finishSession(mins,completed) {
   lifetime+=mins; saveLifetime(lifetime);
-  await addGlobal(mins, completed);
-  await updateLeaderboard(mins);
-  sessions=[{duration:mins,timestamp:Date.now(),completed},...sessions.slice(0,99)];
+  await addGlobal(mins, completed, sessionDistractions);
+  await updateLeaderboard(mins, sessionDistractions);
+  sessions=[{duration:mins,timestamp:Date.now(),completed,distractions:sessionDistractions},...sessions.slice(0,99)];
   saveSessions(sessions);
   playDone();
-  showToast(completed ? '🎯 Complete! +'+mins+'m logged' : '✓ +'+mins+'m saved');
+  const distractMsg = sessionDistractions > 0 ? ` · ${sessionDistractions} distraction${sessionDistractions>1?'s':''}` : '';
+  showToast(completed ? `🎯 Complete! +${mins}m logged${distractMsg}` : `✓ +${mins}m saved${distractMsg}`);
   resetUI(); renderMyStats(); renderGlobalStats();
 }
 
 function resetUI() {
   isRunning=false; isPaused=false; totalSecs=0; remaining=0;
+  sessionDistractions=0;
   _timerWorker.postMessage('stop');
   clearInterval(liveHeartbeat);
   unregisterLive();
@@ -376,6 +406,7 @@ function resetUI() {
   document.getElementById('quickCards').style.display='flex';
   document.getElementById('customOpenBtn').style.display='block';
   document.getElementById('pauseBtn').textContent='Pause';
+  document.getElementById('distractCount').textContent='0';
 }
 
 function handleGaugeClick() { if (!isRunning) openPicker(); }
@@ -402,26 +433,85 @@ function switchTab(id,btn) {
 let personalChart=null;
 function renderMyStats() {
   const todayMins=sessions.filter(s=>isToday(s.timestamp)).reduce((a,s)=>a+s.duration,0);
-  const avg=sessions.length?Math.round(sessions.reduce((a,s)=>a+s.duration,0)/sessions.length):0;
+  const totalDistractions=sessions.reduce((a,s)=>a+(s.distractions||0),0);
   document.getElementById('sc-lifetime').textContent=fmtMins(lifetime);
   document.getElementById('sc-today').textContent=fmtMins(todayMins);
   document.getElementById('sc-sessions').textContent=sessions.length||'—';
-  document.getElementById('sc-avg').textContent=avg?fmtMins(avg):'—';
+  document.getElementById('sc-distractions').textContent=totalDistractions;
   document.getElementById('stripLifetime').textContent=fmtMins(lifetime);
   document.getElementById('stripToday').textContent=fmtMins(todayMins);
-  const dailyMap={};
-  sessions.forEach(s=>{const k=nyDateKey(new Date(s.timestamp));dailyMap[k]=(dailyMap[k]||0)+s.duration;});
-  const labels=[],data=[];
-  for (let i=13;i>=0;i--) { const d=new Date();d.setDate(d.getDate()-i);const k=nyDateKey(d);labels.push(d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'America/New_York'}));data.push(dailyMap[k]||0); }
+
+  // Build daily maps for focus and distractions
+  const dailyFocus={}, dailyDistract={};
+  sessions.forEach(s=>{
+    const k=nyDateKey(new Date(s.timestamp));
+    dailyFocus[k]=(dailyFocus[k]||0)+s.duration;
+    dailyDistract[k]=(dailyDistract[k]||0)+(s.distractions||0);
+  });
+
+  const labels=[],focusData=[],distractData=[];
+  for (let i=13;i>=0;i--) {
+    const d=new Date();d.setDate(d.getDate()-i);
+    const k=nyDateKey(d);
+    labels.push(d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'America/New_York'}));
+    focusData.push(dailyFocus[k]||0);
+    distractData.push(dailyDistract[k]||0);
+  }
+
   const ctx=document.getElementById('personalChart').getContext('2d');
   if (personalChart) personalChart.destroy();
   personalChart=new Chart(ctx,{
     type:'line',
-    data:{labels,datasets:[{data,fill:true,tension:0.4,borderColor:'#facc15',borderWidth:1.5,pointRadius:0,
-      backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,90);g.addColorStop(0,'rgba(250,204,21,0.3)');g.addColorStop(1,'rgba(250,204,21,0)');return g;}}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(20,20,35,0.95)',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'rgba(255,255,255,0.5)',bodyColor:'#facc15',callbacks:{label:ctx=>ctx.parsed.y+'m focused'}}},
-      scales:{x:{grid:{display:false},ticks:{color:'rgba(255,255,255,0.25)',font:{size:9},maxTicksLimit:5},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.2)',font:{size:9}},border:{display:false}}}}
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'Focus',
+          data:focusData,
+          fill:true,
+          tension:0.4,
+          borderColor:'#facc15',
+          borderWidth:1.5,
+          pointRadius:0,
+          yAxisID:'y',
+          backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,90);g.addColorStop(0,'rgba(250,204,21,0.25)');g.addColorStop(1,'rgba(250,204,21,0)');return g;}
+        },
+        {
+          label:'Distractions',
+          data:distractData,
+          fill:false,
+          tension:0.4,
+          borderColor:'rgba(251,146,60,0.7)',
+          borderWidth:1.5,
+          pointRadius:3,
+          pointBackgroundColor:'#fb923c',
+          pointBorderWidth:0,
+          yAxisID:'y2',
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(20,20,35,0.95)',
+          borderColor:'rgba(255,255,255,0.1)',
+          borderWidth:1,
+          titleColor:'rgba(255,255,255,0.5)',
+          callbacks:{
+            label:ctx=>ctx.datasetIndex===0 ? ctx.parsed.y+'m focused' : ctx.parsed.y+' distractions'
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{color:'rgba(255,255,255,0.25)',font:{size:9},maxTicksLimit:5},border:{display:false}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.2)',font:{size:9}},border:{display:false}},
+        y2:{position:'right',grid:{display:false},ticks:{color:'rgba(251,146,60,0.4)',font:{size:9},maxTicksLimit:4,callback:v=>Number.isInteger(v)?v:''},border:{display:false}}
+      }
+    }
   });
   renderSessionList();
 }
@@ -435,7 +525,10 @@ function renderSessionList() {
     const d=new Date(s.timestamp),el=document.createElement('div');
     el.className='session-entry';
     const pct=Math.min((s.duration/90)*100,100);
-    el.innerHTML=`<div class="se-icon ${s.completed?'complete':'partial'}">${s.completed?'🎯':'⏱'}</div><div class="se-body"><div class="se-top"><span class="se-name">${s.duration}m ${s.completed?'completed':'partial'}</span><span class="se-time">${d.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})} · ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="se-bar-track"><div class="se-bar-fill ${s.completed?'complete':'partial'}" style="width:${pct}%"></div></div></div>`;
+    const distractTag = (s.distractions && s.distractions > 0)
+      ? `<span class="se-distract-tag">🫠 ${s.distractions}</span>`
+      : '';
+    el.innerHTML=`<div class="se-icon ${s.completed?'complete':'partial'}">${s.completed?'🎯':'⏱'}</div><div class="se-body"><div class="se-top"><span class="se-name">${s.duration}m ${s.completed?'completed':'partial'}</span>${distractTag}<span class="se-time">${d.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})} · ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="se-bar-track"><div class="se-bar-fill ${s.completed?'complete':'partial'}" style="width:${pct}%"></div></div></div>`;
     list.appendChild(el);
   });
   if (sessions.length>7){loadBtn.style.display='block';loadBtn.textContent=sessionShowAll?'Show less ↑':`Load all ${sessions.length} sessions ↓`;}
@@ -448,6 +541,7 @@ async function renderGlobalStats() {
   const total = data.total || 0;
   const days  = data.days  || {};
   const today = todayKey(), globalToday = days[today] || 0;
+  const totalDistractions = data.totalDistractions || 0;
   const rawSessions = data.sessions || [];
   globalSessionsCache = Array.isArray(rawSessions)
     ? rawSessions
@@ -455,8 +549,7 @@ async function renderGlobalStats() {
   document.getElementById('gc-total').textContent = fmtMins(total);
   document.getElementById('gc-today').textContent = fmtMins(globalToday);
   document.getElementById('gc-sessions').textContent = globalSessionsCache.length || '—';
-  const globalAvg = globalSessionsCache.length ? Math.round(globalSessionsCache.reduce((a,s)=>a+s.duration,0) / globalSessionsCache.length) : 0;
-  document.getElementById('gc-avg').textContent = globalAvg ? fmtMins(globalAvg) : '—';
+  document.getElementById('gc-distractions').textContent = totalDistractions || '0';
   renderGlobalSessionList();
 }
 
@@ -476,7 +569,10 @@ function renderGlobalSessionList() {
     const d = new Date(s.timestamp), el = document.createElement('div');
     el.className = 'session-entry';
     const pct = Math.min((s.duration / 90) * 100, 100);
-    el.innerHTML = `<div class="se-icon ${s.completed?'complete':'partial'}">${s.completed?'🎯':'⏱'}</div><div class="se-body"><div class="se-top"><span class="se-name">${s.duration}m ${s.completed?'completed':'partial'}</span><span class="se-time">${d.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})} · ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="se-bar-track"><div class="se-bar-fill ${s.completed?'complete':'partial'}" style="width:${pct}%"></div></div></div>`;
+    const distractTag = (s.distractions && s.distractions > 0)
+      ? `<span class="se-distract-tag">🫠 ${s.distractions}</span>`
+      : '';
+    el.innerHTML = `<div class="se-icon ${s.completed?'complete':'partial'}">${s.completed?'🎯':'⏱'}</div><div class="se-body"><div class="se-top"><span class="se-name">${s.duration}m ${s.completed?'completed':'partial'}</span>${distractTag}<span class="se-time">${d.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})} · ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="se-bar-track"><div class="se-bar-fill ${s.completed?'complete':'partial'}" style="width:${pct}%"></div></div></div>`;
     container.appendChild(el);
   });
   if (globalSessionsCache.length > 7) {
@@ -542,18 +638,19 @@ function saveLbName() {
   }, 800);
 }
 
-async function updateLeaderboard(mins) {
+async function updateLeaderboard(mins, distractions) {
   const name = getLbName();
   const uid = getLbUid();
   const today = todayKey();
   try {
     const r = await fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`);
     const existing = await r.json();
-    const current = (existing && existing.mins) ? existing.mins : 0;
+    const currentMins = (existing && existing.mins) ? existing.mins : 0;
+    const currentDistractions = (existing && existing.distractions) ? existing.distractions : 0;
     await fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, mins: current + mins, uid, ts: Date.now() })
+      body: JSON.stringify({ name, mins: currentMins + mins, distractions: currentDistractions + (distractions||0), uid, ts: Date.now() })
     });
   } catch {}
 }
@@ -614,12 +711,16 @@ async function renderLeaderboard() {
     const medal = rank < 3 ? `<span class="lb-medal">${medals[rank]}</span>` : `<span class="lb-medal"></span>`;
     const rankLabel = `<span class="lb-rank ${rank < 3 ? rankClass[rank] : ''}">${rank+1}</span>`;
     const youTag = isMe ? `<span class="lb-you-tag">you</span>` : '';
+    const distractsDisplay = entry.distractions > 0
+      ? `<span class="lb-distracts">🫠${entry.distractions}</span>`
+      : '';
     row.innerHTML = `
       <div class="lb-bar-fill" style="width:${barPct}%"></div>
       <div class="lb-row-inner">
         ${rankLabel}${medal}
         <span class="lb-name${isMe?' you':''}">${entry.name}${youTag}</span>
         <span class="lb-mins">${fmtMins(entry.mins)}</span>
+        ${distractsDisplay}
       </div>`;
     return row;
   }

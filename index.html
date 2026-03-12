@@ -588,13 +588,21 @@ async function renderGlobalStats() {
   const data = await fetchGlobalData();
   const total = data.total || 0;
   const days  = data.days  || {};
-  const dayDistractions = data.dayDistractions || {};
   const today = todayKey(), globalToday = days[today] || 0;
   const totalDistractions = data.totalDistractions || 0;
   const rawSessions = data.sessions || [];
   globalSessionsCache = Array.isArray(rawSessions)
     ? rawSessions
     : Object.values(rawSessions).sort((a,b) => b.timestamp - a.timestamp);
+
+  // Derive per-day distractions from sessions array (works for all historical data)
+  const dayDistractions = {};
+  globalSessionsCache.forEach(s => {
+    if (s.distractions && s.timestamp) {
+      const k = nyDateKey(new Date(s.timestamp));
+      dayDistractions[k] = (dayDistractions[k] || 0) + s.distractions;
+    }
+  });
 
   document.getElementById('gc-total').textContent = fmtMins(total);
   document.getElementById('gc-today').textContent = fmtMins(globalToday);

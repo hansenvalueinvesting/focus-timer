@@ -1,21 +1,27 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  const analyticsApp = initializeApp(
-    { databaseURL: "https://github-analytics-9bd0b-default-rtdb.firebaseio.com" },
-    "analytics"
-  );
-  const db = getDatabase(analyticsApp);
+const analyticsApp = initializeApp(
+{ databaseURL: “https://github-analytics-9bd0b-default-rtdb.firebaseio.com” },
+“analytics”
+);
+const db = getDatabase(analyticsApp);
 
-  runTransaction(ref(db, "visits/focus-timer"), n => (n || 0) + 1);
-  runTransaction(ref(db, "visits/total"),       n => (n || 0) + 1);
+runTransaction(ref(db, “visits/focus-timer”), n => (n || 0) + 1);
+runTransaction(ref(db, “visits/total”),       n => (n || 0) + 1);
+
+window._analyticsDb = db;
+window._analyticsRef = ref;
+window._analyticsTransaction = runTransaction;
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>get on the grind.</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏳</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -50,14 +56,11 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
 .btn-pause:hover { background: rgba(255,255,255,0.12); }
 .btn-end { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.25); color: #fca5a5; }
 .btn-end:hover { background: rgba(248,113,113,0.18); }
-
-/* Distraction button */
 .btn-distract { background: rgba(251,146,60,0.08); border-color: rgba(251,146,60,0.2); color: rgba(251,146,60,0.7); position: relative; transition: all 0.2s; }
 .btn-distract:hover { background: rgba(251,146,60,0.15); border-color: rgba(251,146,60,0.35); color: #fb923c; }
 .btn-distract.bump { animation: bump 0.3s ease; }
 @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.08)} 100%{transform:scale(1)} }
 .distract-badge { display: inline-block; background: rgba(251,146,60,0.25); border-radius: 20px; font-size: 11px; font-family: 'DM Mono', monospace; padding: 1px 7px; margin-left: 6px; color: #fb923c; font-weight: 500; min-width: 22px; text-align: center; }
-
 .quick-cards { display: flex; gap: 10px; margin: 18px 0 0; }
 .quick-card { flex: 1; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 14px 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: background 0.15s; text-align: center; }
 .quick-card:hover { background: rgba(255,255,255,0.1); }
@@ -194,7 +197,7 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
     <button class="btn-cancel" onclick="closePicker()">Cancel</button>
   </div>
 
-  <button class="btn-custom-open" id="customOpenBtn" onclick="openPicker()">Custom Duration</button>
+<button class="btn-custom-open" id="customOpenBtn" onclick="openPicker()">Custom Duration</button>
 
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('stats',this)">My Stats</button>
@@ -255,7 +258,6 @@ body { min-height: 100vh; background: linear-gradient(160deg, #0f0f1a 0%, #12101
       <div style="position:relative;height:90px"><canvas id="globalChart"></canvas></div>
     </div>
     <div id="globalDayList"></div>
-    <!-- global chart uses total distractions, not per-hr -->
   </div>
 </div>
 
@@ -287,7 +289,6 @@ async function addGlobal(mins, completed, distractions) {
     data.totalDistractions = (data.totalDistractions||0) + (distractions||0);
     data.days  = data.days || {};
     data.days[today] = (data.days[today]||0) + mins;
-    // Track per-day distractions for avg/hr chart
     data.dayDistractions = data.dayDistractions || {};
     data.dayDistractions[today] = (data.dayDistractions[today]||0) + (distractions||0);
     data.sessions = data.sessions || [];
@@ -312,8 +313,6 @@ function getStatus(pct) {
   if (pct<0.66) return {label:'Deep Work', color:'#facc15'};
   return              {label:'Final Push', color:'#fb923c'};
 }
-
-// Compute avg distractions per hour given total distractions and total minutes
 function avgDistractsPerHr(totalDistractions, totalMins) {
   if (!totalMins || totalMins < 1) return 0;
   return Math.round((totalDistractions / (totalMins / 60)) * 10) / 10;
@@ -372,6 +371,11 @@ function startTimer(mins) {
   _timerWorker.postMessage('start');
   registerLive();
   liveHeartbeat = setInterval(registerLive, 30000);
+
+  if (window._analyticsTransaction) {
+    window._analyticsTransaction(window._analyticsRef(window._analyticsDb, "visits/focus-timer"), n => (n || 0) + 1);
+    window._analyticsTransaction(window._analyticsRef(window._analyticsDb, "visits/total"),       n => (n || 0) + 1);
+  }
 }
 function startCustom() { const v=parseInt(document.getElementById('customInput').value,10); if (v>0&&v<=480) startTimer(v); }
 
@@ -462,13 +466,8 @@ function switchTab(id,btn) {
   if (id==='leaderboard') renderLeaderboard();
 }
 
-// Build sorted array of all active days from sessions
-function getAllDaysSorted(dailyMap) {
-  return Object.keys(dailyMap).sort();
-}
+function getAllDaysSorted(dailyMap) { return Object.keys(dailyMap).sort(); }
 
-// Build chart datasets for all-time view (all days with data)
-// rawDistracts=true: use raw daily totals; false (default): use avg/hr
 function buildAllTimeChartData(dailyFocus, dailyDistract, rawDistracts) {
   const allDays = [...new Set([...Object.keys(dailyFocus), ...Object.keys(dailyDistract)])].sort();
   const labels = allDays.map(k => {
@@ -491,30 +490,22 @@ function renderMyStats() {
   const totalDistractions=sessions.reduce((a,s)=>a+(s.distractions||0),0);
   const totalMins=sessions.reduce((a,s)=>a+s.duration,0);
   const avgPerHr = avgDistractsPerHr(totalDistractions, totalMins);
-
   document.getElementById('sc-lifetime').textContent=fmtMins(lifetime);
   document.getElementById('sc-today').textContent=fmtMins(todayMins);
   document.getElementById('sc-sessions').textContent=sessions.length||'—';
-  // Show avg distractions/hr, or dash if no data
   document.getElementById('sc-distractions').textContent = totalMins > 0 ? avgPerHr : '—';
-
   document.getElementById('stripLifetime').textContent=fmtMins(lifetime);
   document.getElementById('stripToday').textContent=fmtMins(todayMins);
-
-  // Build daily maps for all-time
   const dailyFocus={}, dailyDistract={};
   sessions.forEach(s=>{
     const k=nyDateKey(new Date(s.timestamp));
     dailyFocus[k]=(dailyFocus[k]||0)+s.duration;
     dailyDistract[k]=(dailyDistract[k]||0)+(s.distractions||0);
   });
-
   const { labels, focusData, distractData } = buildAllTimeChartData(dailyFocus, dailyDistract);
-
   const ctx=document.getElementById('personalChart').getContext('2d');
   if (personalChart) personalChart.destroy();
   personalChart=new Chart(ctx, buildChartConfig(labels, focusData, distractData, '#facc15'));
-
   renderSessionList();
 }
 
@@ -525,47 +516,14 @@ function buildChartConfig(labels, focusData, distractData, focusColor, rawDistra
     data:{
       labels,
       datasets:[
-        {
-          label:'Focus',
-          data:focusData,
-          fill:true,
-          tension:0.4,
-          borderColor:focusColor,
-          borderWidth:1.5,
-          pointRadius:labels.length > 30 ? 0 : 2,
-          yAxisID:'y',
-          backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,90);g.addColorStop(0,focusColor+'40');g.addColorStop(1,focusColor+'00');return g;}
-        },
-        {
-          label: distractLabel,
-          data: distractData,
-          fill:false,
-          tension:0.4,
-          borderColor:'rgba(251,146,60,0.7)',
-          borderWidth:1.5,
-          pointRadius:labels.length > 30 ? 0 : 3,
-          pointBackgroundColor:'#fb923c',
-          pointBorderWidth:0,
-          yAxisID:'y2',
-        }
+        { label:'Focus', data:focusData, fill:true, tension:0.4, borderColor:focusColor, borderWidth:1.5, pointRadius:labels.length > 30 ? 0 : 2, yAxisID:'y', backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,90);g.addColorStop(0,focusColor+'40');g.addColorStop(1,focusColor+'00');return g;} },
+        { label: distractLabel, data: distractData, fill:false, tension:0.4, borderColor:'rgba(251,146,60,0.7)', borderWidth:1.5, pointRadius:labels.length > 30 ? 0 : 3, pointBackgroundColor:'#fb923c', pointBorderWidth:0, yAxisID:'y2' }
       ]
     },
     options:{
-      responsive:true,
-      maintainAspectRatio:false,
+      responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:'rgba(20,20,35,0.95)',
-          borderColor:'rgba(255,255,255,0.1)',
-          borderWidth:1,
-          titleColor:'rgba(255,255,255,0.5)',
-          callbacks:{
-            label:ctx=>ctx.datasetIndex===0 ? ctx.parsed.y+'m focused' : ctx.parsed.y+' '+distractLabel
-          }
-        }
-      },
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(20,20,35,0.95)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, titleColor:'rgba(255,255,255,0.5)', callbacks:{ label:ctx=>ctx.datasetIndex===0 ? ctx.parsed.y+'m focused' : ctx.parsed.y+' '+distractLabel } } },
       scales:{
         x:{grid:{display:false},ticks:{color:'rgba(255,255,255,0.25)',font:{size:9},maxTicksLimit:6},border:{display:false}},
         y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.2)',font:{size:9}},border:{display:false}},
@@ -584,9 +542,7 @@ function renderSessionList() {
     const d=new Date(s.timestamp),el=document.createElement('div');
     el.className='session-entry';
     const pct=Math.min((s.duration/90)*100,100);
-    const distractTag = (s.distractions && s.distractions > 0)
-      ? `<span class="se-distract-tag">🫠 ${s.distractions}</span>`
-      : '';
+    const distractTag = (s.distractions && s.distractions > 0) ? `<span class="se-distract-tag">🫠 ${s.distractions}</span>` : '';
     el.innerHTML=`<div class="se-icon ${s.completed?'complete':'partial'}">${s.completed?'🎯':'⏱'}</div><div class="se-body"><div class="se-top"><span class="se-name">${s.duration}m ${s.completed?'completed':'partial'}</span>${distractTag}<span class="se-time">${d.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})} · ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="se-bar-track"><div class="se-bar-fill ${s.completed?'complete':'partial'}" style="width:${pct}%"></div></div></div>`;
     list.appendChild(el);
   });
@@ -604,11 +560,7 @@ async function renderGlobalStats() {
   const today = todayKey(), globalToday = days[today] || 0;
   const totalDistractions = data.totalDistractions || 0;
   const rawSessions = data.sessions || [];
-  globalSessionsCache = Array.isArray(rawSessions)
-    ? rawSessions
-    : Object.values(rawSessions).sort((a,b) => b.timestamp - a.timestamp);
-
-  // Derive per-day distractions from sessions array (works for all historical data)
+  globalSessionsCache = Array.isArray(rawSessions) ? rawSessions : Object.values(rawSessions).sort((a,b) => b.timestamp - a.timestamp);
   const dayDistractions = {};
   globalSessionsCache.forEach(s => {
     if (s.distractions && s.timestamp) {
@@ -616,47 +568,33 @@ async function renderGlobalStats() {
       dayDistractions[k] = (dayDistractions[k] || 0) + s.distractions;
     }
   });
-
   document.getElementById('gc-total').textContent = fmtMins(total);
   document.getElementById('gc-today').textContent = fmtMins(globalToday);
   document.getElementById('gc-sessions').textContent = globalSessionsCache.length || '—';
   document.getElementById('gc-distractions').textContent = totalDistractions || '0';
-
-  // Build all-time chart for global using raw daily distraction totals
   const { labels, focusData, distractData } = buildAllTimeChartData(days, dayDistractions, true);
-
   const ctx = document.getElementById('globalChart').getContext('2d');
   if (globalChart) globalChart.destroy();
   globalChart = new Chart(ctx, buildChartConfig(labels, focusData, distractData, '#4ade80', true));
-
   renderGlobalSessionList();
 }
 
 function renderGlobalSessionList() {
   const container = document.getElementById('globalDayList');
   container.innerHTML = '';
-  if (!globalSessionsCache.length) {
-    container.innerHTML = '<div class="empty-msg">No sessions logged yet 🌍</div>';
-    return;
-  }
-  const lbl = document.createElement('div');
-  lbl.className = 'section-label';
-  lbl.textContent = 'Session History';
-  container.appendChild(lbl);
+  if (!globalSessionsCache.length) { container.innerHTML = '<div class="empty-msg">No sessions logged yet 🌍</div>'; return; }
+  const lbl = document.createElement('div'); lbl.className = 'section-label'; lbl.textContent = 'Session History'; container.appendChild(lbl);
   const visible = globalSessionShowAll ? globalSessionsCache : globalSessionsCache.slice(0, 7);
   visible.forEach(s => {
     const d = new Date(s.timestamp), el = document.createElement('div');
     el.className = 'session-entry';
     const pct = Math.min((s.duration / 90) * 100, 100);
-    const distractTag = (s.distractions && s.distractions > 0)
-      ? `<span class="se-distract-tag">🫠 ${s.distractions}</span>`
-      : '';
+    const distractTag = (s.distractions && s.distractions > 0) ? `<span class="se-distract-tag">🫠 ${s.distractions}</span>` : '';
     el.innerHTML = `<div class="se-icon ${s.completed?'complete':'partial'}">${s.completed?'🎯':'⏱'}</div><div class="se-body"><div class="se-top"><span class="se-name">${s.duration}m ${s.completed?'completed':'partial'}</span>${distractTag}<span class="se-time">${d.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})} · ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="se-bar-track"><div class="se-bar-fill ${s.completed?'complete':'partial'}" style="width:${pct}%"></div></div></div>`;
     container.appendChild(el);
   });
   if (globalSessionsCache.length > 7) {
-    const btn = document.createElement('button');
-    btn.className = 'btn-load-more';
+    const btn = document.createElement('button'); btn.className = 'btn-load-more';
     btn.textContent = globalSessionShowAll ? 'Show less ↑' : `Load all ${globalSessionsCache.length} sessions ↓`;
     btn.onclick = () => { globalSessionShowAll = !globalSessionShowAll; renderGlobalSessionList(); };
     container.appendChild(btn);
@@ -671,21 +609,16 @@ function playDone() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const notes = [523.25, 659.25, 783.99, 1046.50];
     notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.value = freq;
+      osc.type = 'sine'; osc.frequency.value = freq;
       const t = ctx.currentTime + i * 0.12;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.18, t + 0.02); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
       osc.start(t); osc.stop(t + 0.35);
     });
   } catch {}
 }
 
-// ── Leaderboard ────────────────────────────────────────────────────────────────
 const LB_NAME_KEY = 'focus_lb_name';
 const LB_UID_KEY  = 'focus_lb_uid';
 function getLbName() { return localStorage.getItem(LB_NAME_KEY) || getLbUid(); }
@@ -702,35 +635,23 @@ function saveLbName() {
   if (!val) return;
   clearTimeout(lbNameDebounce);
   lbNameDebounce = setTimeout(() => {
-    const uid = getLbUid();
-    const today = todayKey();
-    fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`)
-      .then(r=>r.json()).then(existing=>{
-        if (existing && existing.mins) {
-          fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`, {
-            method: 'PUT',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({...existing, name: val})
-          }).then(()=>renderLeaderboard());
-        }
-      }).catch(()=>{});
+    const uid = getLbUid(); const today = todayKey();
+    fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`).then(r=>r.json()).then(existing=>{
+      if (existing && existing.mins) {
+        fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...existing, name: val}) }).then(()=>renderLeaderboard());
+      }
+    }).catch(()=>{});
   }, 800);
 }
 
 async function updateLeaderboard(mins, distractions) {
-  const name = getLbName();
-  const uid = getLbUid();
-  const today = todayKey();
+  const name = getLbName(); const uid = getLbUid(); const today = todayKey();
   try {
     const r = await fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`);
     const existing = await r.json();
     const currentMins = (existing && existing.mins) ? existing.mins : 0;
     const currentDistractions = (existing && existing.distractions) ? existing.distractions : 0;
-    await fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, mins: currentMins + mins, distractions: currentDistractions + (distractions||0), uid, ts: Date.now() })
-    });
+    await fetch(`${FIREBASE_URL}/leaderboard/${today}/${uid}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, mins: currentMins + mins, distractions: currentDistractions + (distractions||0), uid, ts: Date.now() }) });
   } catch {}
 }
 
@@ -743,22 +664,17 @@ function startLbCountdown() {
     const nyTimeStr = new Date().toLocaleTimeString('en-US', {timeZone:'America/New_York', hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'});
     const [hh,mm,ss] = nyTimeStr.split(':').map(Number);
     const diff = Math.max(0, 86400 - (hh*3600 + mm*60 + ss));
-    const h = Math.floor(diff / 3600);
-    const m = Math.floor((diff % 3600) / 60);
-    const s = diff % 60;
+    const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
     const el = document.getElementById('lbCountdown');
     if (el) el.textContent = `resets in ${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
   }
-  update();
-  lbCountdownInterval = setInterval(update, 1000);
+  update(); lbCountdownInterval = setInterval(update, 1000);
 }
 
 async function renderLeaderboard() {
-  const uid = getLbUid();
-  const today = todayKey();
+  const uid = getLbUid(); const today = todayKey();
   startLbCountdown();
-  document.getElementById('lbDateLabel').textContent =
-    new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric', timeZone:'America/New_York' }) + ' (ET)';
+  document.getElementById('lbDateLabel').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric', timeZone:'America/New_York' }) + ' (ET)';
   const nameInput = document.getElementById('lbNameInput');
   if (!nameInput.value) nameInput.value = getLbName();
   let entries = [];
@@ -767,88 +683,51 @@ async function renderLeaderboard() {
     const data = await r.json();
     if (data) entries = Object.values(data).sort((a,b) => b.mins - a.mins);
   } catch {}
-  const list = document.getElementById('lbList');
-  const loadBtn = document.getElementById('lbLoadMoreBtn');
+  const list = document.getElementById('lbList'); const loadBtn = document.getElementById('lbLoadMoreBtn');
   list.innerHTML = '';
-  if (!entries.length) {
-    list.innerHTML = '<div class="empty-msg">No one on the board yet today 🏆<br><span style="font-size:11px;color:rgba(255,255,255,0.15)">Complete a session to appear</span></div>';
-    loadBtn.style.display = 'none';
-    return;
-  }
+  if (!entries.length) { list.innerHTML = '<div class="empty-msg">No one on the board yet today 🏆<br><span style="font-size:11px;color:rgba(255,255,255,0.15)">Complete a session to appear</span></div>'; loadBtn.style.display = 'none'; return; }
   const myIdx = entries.findIndex(e => e.uid === uid);
   const myEntry = myIdx >= 0 ? entries[myIdx] : null;
   const topEntries = entries.slice(0, lbVisible);
   const myInTop = myIdx >= 0 && myIdx < lbVisible;
-  const medals = ['🥇','🥈','🥉'];
-  const rankClass = ['gold','silver','bronze'];
+  const medals = ['🥇','🥈','🥉']; const rankClass = ['gold','silver','bronze'];
   const maxMins = entries[0].mins;
   function makeRow(entry, rank) {
     const isMe = entry.uid === uid;
     const barPct = maxMins > 0 ? Math.round((entry.mins / maxMins) * 100) : 0;
-    const row = document.createElement('div');
-    row.className = 'lb-row' + (isMe ? ' you-row' : '');
+    const row = document.createElement('div'); row.className = 'lb-row' + (isMe ? ' you-row' : '');
     const medal = rank < 3 ? `<span class="lb-medal">${medals[rank]}</span>` : `<span class="lb-medal"></span>`;
     const rankLabel = `<span class="lb-rank ${rank < 3 ? rankClass[rank] : ''}">${rank+1}</span>`;
     const youTag = isMe ? `<span class="lb-you-tag">you</span>` : '';
-    const distractsDisplay = entry.distractions > 0
-      ? `<span class="lb-distracts">🫠${entry.distractions}</span>`
-      : '';
-    row.innerHTML = `
-      <div class="lb-bar-fill" style="width:${barPct}%"></div>
-      <div class="lb-row-inner">
-        ${rankLabel}${medal}
-        <span class="lb-name${isMe?' you':''}">${entry.name}${youTag}</span>
-        <span class="lb-mins">${fmtMins(entry.mins)}</span>
-        ${distractsDisplay}
-      </div>`;
+    const distractsDisplay = entry.distractions > 0 ? `<span class="lb-distracts">🫠${entry.distractions}</span>` : '';
+    row.innerHTML = `<div class="lb-bar-fill" style="width:${barPct}%"></div><div class="lb-row-inner">${rankLabel}${medal}<span class="lb-name${isMe?' you':''}">${entry.name}${youTag}</span><span class="lb-mins">${fmtMins(entry.mins)}</span>${distractsDisplay}</div>`;
     return row;
   }
   topEntries.forEach((entry, i) => list.appendChild(makeRow(entry, i)));
   if (myEntry && !myInTop) {
-    const div = document.createElement('div');
-    div.className = 'lb-divider';
-    div.textContent = '· · ·';
-    list.appendChild(div);
+    const div = document.createElement('div'); div.className = 'lb-divider'; div.textContent = '· · ·'; list.appendChild(div);
     list.appendChild(makeRow(myEntry, myIdx));
   }
-  if (entries.length > lbVisible) {
-    loadBtn.style.display = 'block';
-    loadBtn.textContent = `Load 10 more ↓ (${entries.length - lbVisible} remaining)`;
-  } else {
-    loadBtn.style.display = 'none';
-  }
+  if (entries.length > lbVisible) { loadBtn.style.display = 'block'; loadBtn.textContent = `Load 10 more ↓ (${entries.length - lbVisible} remaining)`; }
+  else { loadBtn.style.display = 'none'; }
 }
 
 function lbLoadMore() { lbVisible += 10; renderLeaderboard(); }
 
-// ── Live presence ──────────────────────────────────────────────────────────────
 const LIVE_UID = getLbUid();
 let liveHeartbeat = null;
 
 async function registerLive() {
-  try {
-    await fetch(`${FIREBASE_URL}/live/${LIVE_UID}.json`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ts: Date.now() })
-    });
-  } catch {}
+  try { await fetch(`${FIREBASE_URL}/live/${LIVE_UID}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ts: Date.now() }) }); } catch {}
 }
-
 async function unregisterLive() {
-  try {
-    await fetch(`${FIREBASE_URL}/live/${LIVE_UID}.json`, { method: 'DELETE' });
-  } catch {}
+  try { await fetch(`${FIREBASE_URL}/live/${LIVE_UID}.json`, { method: 'DELETE' }); } catch {}
 }
-
 async function refreshLiveCount() {
   try {
-    const r = await fetch(`${FIREBASE_URL}/live.json`);
-    const data = await r.json();
-    const now = Date.now();
-    const active = data ? Object.values(data).filter(e => now - e.ts < 90000) : [];
-    const el = document.getElementById('liveCount');
-    if (el) el.textContent = active.length;
+    const r = await fetch(`${FIREBASE_URL}/live.json`); const data = await r.json();
+    const now = Date.now(); const active = data ? Object.values(data).filter(e => now - e.ts < 90000) : [];
+    const el = document.getElementById('liveCount'); if (el) el.textContent = active.length;
   } catch {}
 }
 
@@ -865,5 +744,6 @@ setProgress(0); updateGaugeStatus(0);
 renderMyStats();
 renderGlobalStats();
 </script>
+
 </body>
 </html>
